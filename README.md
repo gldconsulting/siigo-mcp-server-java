@@ -10,7 +10,7 @@ Java 21, Maven, SDK oficial MCP Java, STDIO y Streamable HTTP. Independiente del
 > [!WARNING]
 > **Uso interno: este MCP no está diseñado para exponerse públicamente a Internet.**
 >
-> Debe utilizarse como herramienta interna o de apoyo para otros procesos, con acceso limitado a usuarios y sistemas autorizados. Exponerlo públicamente puede introducir una brecha de seguridad en la arquitectura y permitir el acceso no autorizado a datos y operaciones de Siigo.
+> Debe utilizarse como herramienta interna o de apoyo para otros procesos, con acceso limitado a usuarios y sistemas autorizados. Exponerlo públicamente puede introducir una brecha de seguridad en tu arquitectura tecnológica y permitir el acceso no autorizado a datos contables de tu empresa y operaciones de Siigo.
 >
 > El bearer del transporte HTTP, la validación de Host/Origin y HTTPS no convierten esta implementación en un servicio preparado para exposición pública. Mantener el proceso en el equipo local o en una red privada; para ChatGPT, usar la conexión privada mediante Secure MCP Tunnel descrita más adelante.
 
