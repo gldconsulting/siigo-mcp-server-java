@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "siigo": {
+      "command": "java",
+      "args": ["-jar", "/absolute/path/siigo-mcp-server-1.0.0-SNAPSHOT.jar"],
+      "env": {
+        "SIIGO_PARTNER_ID": "<partner-id>",
+        "SIIGO_USERNAME": "<api-username>",
+        "SIIGO_ACCESS_KEY": "<access-key>"
+      }
+    }
+  }
+}

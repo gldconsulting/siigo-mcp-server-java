@@ -1,0 +1,27 @@
+name: Java 21 verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build and test without live credentials
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+      - name: Retain executable JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: siigo-mcp-server-java21
+          retention-days: 7
+          path: target/siigo-mcp-server-*.jar

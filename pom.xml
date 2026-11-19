@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>co.gldconsulting</groupId><artifactId>siigo-mcp-server</artifactId><version>1.0.0-SNAPSHOT</version>
+  <name>GLD Consulting Siigo MCP Server</name>
+  <description>Java MCP server for Siigo Colombia, powered by the GLD Consulting Siigo API SDK.</description>
+  <url>https://github.com/gldconsulting/siigo-mcp-server-java</url>
+  <organization><name>GLD Consulting S.A.S.</name><url>https://gld.consulting</url></organization>
+  <licenses><license><name>MIT License</name><url>https://opensource.org/license/mit</url><distribution>repo</distribution></license></licenses>
+  <developers><developer><id>gldiazcardenas</id><name>Gabriel Diaz</name><organization>GLD Consulting S.A.S.</organization></developer></developers>
+  <scm><connection>scm:git:https://github.com/gldconsulting/siigo-mcp-server-java.git</connection><developerConnection>scm:git:ssh://git@github.com/gldconsulting/siigo-mcp-server-java.git</developerConnection><url>https://github.com/gldconsulting/siigo-mcp-server-java</url><tag>HEAD</tag></scm>
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <mcp.version>2.2.0</mcp.version><siigo.sdk.version>1.0.0</siigo.sdk.version><tomcat.version>10.1.62</tomcat.version>
+  </properties>
+  <dependencyManagement><dependencies><dependency><groupId>io.modelcontextprotocol.sdk</groupId><artifactId>mcp-bom</artifactId><version>${mcp.version}</version><type>pom</type><scope>import</scope></dependency><dependency><groupId>com.fasterxml.jackson</groupId><artifactId>jackson-bom</artifactId><version>2.21.1</version><type>pom</type><scope>import</scope></dependency></dependencies></dependencyManagement>
+  <dependencies>
+    <dependency><groupId>co.gldconsulting</groupId><artifactId>siigo-api-sdk</artifactId><version>${siigo.sdk.version}</version></dependency>
+    <dependency><groupId>io.modelcontextprotocol.sdk</groupId><artifactId>mcp-core</artifactId></dependency>
+    <dependency><groupId>io.modelcontextprotocol.sdk</groupId><artifactId>mcp-json-jackson2</artifactId></dependency>
+    <dependency><groupId>com.fasterxml.jackson.datatype</groupId><artifactId>jackson-datatype-jsr310</artifactId></dependency>
+    <dependency><groupId>org.apache.tomcat.embed</groupId><artifactId>tomcat-embed-core</artifactId><version>${tomcat.version}</version></dependency>
+    <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-simple</artifactId><version>2.0.20</version><scope>runtime</scope></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.12.2</version><scope>test</scope></dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version><configuration><release>21</release><parameters>true</parameters></configuration></plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.4</version><configuration><useModulePath>false</useModulePath></configuration></plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-failsafe-plugin</artifactId><version>3.5.4</version><executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions><configuration><useModulePath>false</useModulePath><systemPropertyVariables><mcp.test.jar>${project.build.directory}/${project.build.finalName}.jar</mcp.test.jar></systemPropertyVariables></configuration></plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-shade-plugin</artifactId><version>3.6.1</version><executions><execution><phase>package</phase><goals><goal>shade</goal></goals><configuration><createDependencyReducedPom>false</createDependencyReducedPom><filters><filter><artifact>*:*</artifact><excludes><exclude>META-INF/*.SF</exclude><exclude>META-INF/*.DSA</exclude><exclude>META-INF/*.RSA</exclude><exclude>module-info.class</exclude><exclude>META-INF/versions/*/module-info.class</exclude></excludes></filter></filters><transformers><transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer"><resource>META-INF/LICENSE</resource></transformer><transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer"><resource>META-INF/NOTICE</resource></transformer><transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer"><resource>META-INF/LICENSE.txt</resource></transformer><transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer"><resource>META-INF/NOTICE.txt</resource></transformer><transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/><transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"><mainClass>co.gldconsulting.siigo.mcp.SiigoMcpServer</mainClass><manifestEntries><Implementation-Version>${project.version}</Implementation-Version></manifestEntries></transformer></transformers></configuration></execution></executions></plugin>
+    </plugins>
+  </build>
+</project>

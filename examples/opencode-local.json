@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "siigo": {
+        "type": "local",
+        "command": [
+          "java",
+          "-jar",
+          "/absolute/path/siigo-mcp-server-1.0.0-SNAPSHOT.jar"
+        ],
+        "protocol": "legacy",
+        "environment": {
+          "SIIGO_PARTNER_ID": "{env:SIIGO_PARTNER_ID}",
+          "SIIGO_USERNAME": "{env:SIIGO_USERNAME}",
+          "SIIGO_ACCESS_KEY": "{env:SIIGO_ACCESS_KEY}",
+          "SIIGO_MCP_TRANSPORT": "stdio"
+        }
+      }
+    }
+  }
+}
