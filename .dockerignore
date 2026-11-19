@@ -1,0 +1,18 @@
+# Allow only the source and metadata needed to build the executable JAR.
+**
+!Dockerfile
+!pom.xml
+!LICENSE
+!src/
+!src/main/
+!src/main/**
+
+# Never send local credentials or private key files, even below src/main.
+**/.env
+**/.env.*
+**/*credentials*
+**/*secrets*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx

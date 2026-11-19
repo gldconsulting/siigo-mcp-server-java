@@ -290,6 +290,85 @@ Con el servidor ya ejecutándose en modo HTTP, el cliente solo necesita el beare
 
 Comprobar con `opencode mcp list` o `/mcps`. Para conectarse desde otro equipo de una red privada, usar una URL HTTPS interna y autorizar su Host en el servidor. Mantener el endpoint fuera del acceso público a Internet. No ejecutar `opencode mcp auth siigo` para este ejemplo: utiliza bearer estático, no OAuth. Ambos ejemplos se conservan como archivos en `examples/`.
 
+## Ejecutar con Docker
+
+El [Dockerfile](Dockerfile) compila el proyecto con Maven y Java 21 en una etapa de construcción y copia el JAR a una imagen de ejecución Java 21. La aplicación se ejecuta con el usuario sin privilegios `10001:10001`. El contexto de construcción se limita mediante [.dockerignore](.dockerignore); las credenciales se proporcionan al arrancar, no durante el build.
+
+### Construir la imagen
+
+Con Docker Engine o Docker Desktop en funcionamiento, ejecutar desde la raíz del repositorio:
+
+```sh
+docker build -t gldconsulting/siigo-mcp-server:local .
+```
+
+No necesitas tener Java ni Maven instalados en el host para esta construcción. La etapa Docker empaqueta el JAR; la suite completa de pruebas se ejecuta con `./mvnw clean verify` fuera de la imagen. La etiqueta `:local` es una imagen construida en tu máquina, no una imagen que este proyecto haya publicado en Docker Hub.
+
+### Docker por STDIO: el cliente arranca el contenedor
+
+En esta modalidad **el cliente MCP ejecuta `docker run` y mantiene abierto su stdin**. No debes dejar un contenedor STDIO separado funcionando antes de conectar: cada cliente crea y administra su propio contenedor. La imagen debe estar construida y las tres credenciales deben estar disponibles en el entorno del cliente.
+
+El comando que ejecutará el cliente es:
+
+```sh
+docker run --rm -i \
+  --env SIIGO_PARTNER_ID \
+  --env SIIGO_USERNAME \
+  --env SIIGO_ACCESS_KEY \
+  gldconsulting/siigo-mcp-server:local
+```
+
+Usar `-i`, sin `-t`: el terminal virtual puede alterar el intercambio JSON-RPC. No se publican puertos para STDIO. Los flags `--env NOMBRE` toman el valor del entorno del proceso Docker; no incluyen el secreto en los argumentos.
+
+Por ejemplo, en un cliente con formato `mcpServers` y las tres variables ya heredadas:
+
+```json
+{
+  "mcpServers": {
+    "siigo": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--env", "SIIGO_PARTNER_ID",
+        "--env", "SIIGO_USERNAME",
+        "--env", "SIIGO_ACCESS_KEY",
+        "gldconsulting/siigo-mcp-server:local"
+      ]
+    }
+  }
+}
+```
+
+Si el cliente gráfico no hereda las credenciales, configurarlas con su mecanismo privado de entorno/secretos, igual que en los ejemplos Java. Para Claude Code u OpenCode, conservar el formato propio de cada cliente y sustituir el comando Java por el comando Docker anterior. Al cerrar stdin, el MCP termina y `--rm` elimina ese contenedor.
+
+### Docker por HTTP interno: tú arrancas el contenedor primero
+
+Definir previamente las tres credenciales y `SIIGO_MCP_HTTP_TOKEN` en el entorno de tu terminal. Después ejecutar:
+
+```sh
+docker run --rm -d --name siigo-mcp \
+  -p 127.0.0.1:8080:8080 \
+  --env SIIGO_PARTNER_ID \
+  --env SIIGO_USERNAME \
+  --env SIIGO_ACCESS_KEY \
+  --env SIIGO_MCP_HTTP_TOKEN \
+  --env SIIGO_MCP_TRANSPORT=http \
+  --env SIIGO_MCP_HOST=0.0.0.0 \
+  gldconsulting/siigo-mcp-server:local
+```
+
+`0.0.0.0` es la escucha **dentro del contenedor**; la publicación `127.0.0.1:8080:8080` limita el puerto al equipo host. Mantener esa publicación local: este MCP no está diseñado para exposición pública a Internet. Configurar después los clientes HTTP con `http://127.0.0.1:8080/mcp` y el bearer MCP. En esta modalidad los clientes no arrancan Docker ni Java.
+
+Mantener el contenedor funcionando durante el uso. Para detenerlo:
+
+```sh
+docker stop siigo-mcp
+```
+
+Para restringir herramientas se pueden añadir `--env SIIGO_MCP_READ_ONLY=true` o `--env SIIGO_MCP_TOOL_GROUPS=purchases,journals,catalogs` a cualquiera de los comandos. El token Siigo sigue siendo obtenido, almacenado en memoria y renovado exclusivamente por el SDK dentro del contenedor.
+
+Referencias: [construcción multi-stage](https://docs.docker.com/build/building/multi-stage/) y [opciones de docker run](https://docs.docker.com/reference/cli/docker/container/run/).
+
 ## Herramientas
 
 El [inventario](docs/tools.md) lista las herramientas de los 14 grupos: productos, terceros, facturas, cotizaciones, notas crédito, compras, comprobantes contables, comprobantes de pago, documentos soporte, recibos de caja, categorías de inventario, catálogos, reportes y webhooks.
@@ -309,6 +388,8 @@ Ejemplos de argumentos de herramientas —el host MCP envía estas llamadas; no 
 ```json
 {"from":"2026-08-01","to":"2026-08-31","filter":{"page_size":100}}
 ```
+
+**Compatibilidad de `page_size`:** en una consulta real de compras, Siigo devolvió `page_size=10` al solicitar `2`; con `25` y `100` respetó el tamaño pedido. Usar `25` o `100` para los recorridos completos. El SDK verifica que la paginación recibida sea coherente con la solicitada y devuelve un error ante discrepancias, en lugar de entregar un listado parcial.
 
 **Comprobantes de agosto de 2026:** `siigo_get_journals_by_date`
 
